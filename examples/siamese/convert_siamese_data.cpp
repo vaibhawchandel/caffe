@@ -122,12 +122,12 @@ int main(int argc, char** argv) {
   bool is_color = !FLAGS_gray;
   std::ifstream infile(argv[2]);
 //  std::vector<std::pair<string, int> > lines;
-  std::vector<std::tuple<string, string, int> > lines;
+  std::vector<std::pair<std::pair<string, string>, int> > lines;
   string filename1;
   string filename2;
   int label;
   while (infile >> filename1 >> filename2 >> label) {
-    lines.push_back(std::tuple<string, string, int>(filename1, filename2, label));
+    lines.push_back(std::make_pair(std::make_pair(filename1, filename2), label));
   }
   if (FLAGS_shuffle) {
     // randomly shuffle data
@@ -191,8 +191,8 @@ int main(int argc, char** argv) {
   bool data_size_initialized = false;
 
   for (int line_id = 0; line_id < lines.size(); ++line_id) {
-    if (!ReadImageToDatum(root_folder + std::get<0>(lines[line_id]),
-        std::get<1>(lines[line_id]), std::get<2>(lines[line_id]), resize_height, resize_width, is_color, &datum)) {
+    if (!ReadImageToDatum(root_folder + lines[line_id].first.first,
+        root_folder + lines[line_id].first.second, lines[line_id].second, resize_height, resize_width, is_color, &datum)) {
       continue;
     }
     if (!data_size_initialized) {
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
     }
     // sequential
     snprintf(key_cstr, kMaxKeyLength, "%08d_%s", line_id,
-        std::get<0>(lines[line_id]).c_str());
+        (lines[line_id].first.first + lines[line_id].first.second).c_str());
     string value;
     datum.SerializeToString(&value);
     string keystr(key_cstr);
